@@ -5,6 +5,13 @@ import json
 import shutil
 import time
 
+def find_file_recursive(base_path, filename):
+    """Recursively search for a file in the given base directory."""
+    for root, _, files in os.walk(base_path):
+        if filename in files:
+            return os.path.join(root, filename)  # Return the full path if found
+    return None  # Return None if not found
+
 def clasify_image(directory_path, dest_path="labeled_data"):
 
 	labels = [
@@ -153,8 +160,20 @@ Important formatting rules:
 	with os.scandir(directory_path) as entries:
 		for entry in entries:
 			if entry.is_file():
-				character_name = json.loads(geminiWrapper.send_message(file_path=entry.path)[0])["character_name"]
-				dest = f"{dest_path}/{character_name}"
-				os.makedirs(dest, exist_ok=True)
-				shutil.copyfile(entry.path, f'{dest}/{entry.name}')
-				time.sleep(5)
+				try:
+					existing_file_path = find_file_recursive(dest_path, entry.name)
+					
+					if existing_file_path:
+						print(f"File '{entry.name}' already exists in '{existing_file_path}', skipping...")
+						continue  # Skip processing if file already exists
+					
+					# Extract character name if the file is not found
+					character_name = json.loads(geminiWrapper.send_message(file_path=entry.path)[0])["character_name"]
+					dest = os.path.join(dest_path, character_name)
+					os.makedirs(dest, exist_ok=True)
+					
+					dest_file_path = os.path.join(dest, entry.name)
+					shutil.copyfile(entry.path, dest_file_path)
+					time.sleep(5)
+				except:
+					pass
