@@ -1,0 +1,9 @@
+git+https://github.com/jebin2/gemiwrap.git
+opencv-python
+scenedetect
+torch
+torchvision
+git+https://github.com/facebookresearch/detectron2.git
+transformers
+timm
+kornia
